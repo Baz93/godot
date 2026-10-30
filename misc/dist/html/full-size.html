@@ -176,7 +176,7 @@ const engine = new Engine(GODOT_CONFIG);
 	// (on Android an intent: the phone's browser opens the page).
 	const missingNotice = () => {
 		console.error('Missing: ' + missing.join('; '));
-		displayFailureNotice('This app\'s browser can\'t run the game.');
+		displayFailureNotice('The game can\'t run here.');
 		const open = document.createElement('a');
 		open.href = /Android/.test(navigator.userAgent)
 			? `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;end`
