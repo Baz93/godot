@@ -1057,7 +1057,10 @@ void DisplayServerWeb::_send_window_event_callback(int p_notification) {
 	if (p_notification == DisplayServerEnums::WINDOW_EVENT_MOUSE_ENTER || p_notification == DisplayServerEnums::WINDOW_EVENT_MOUSE_EXIT) {
 		ds->cursor_inside_canvas = p_notification == DisplayServerEnums::WINDOW_EVENT_MOUSE_ENTER;
 	}
-	if (godot_js_is_ime_focused() && (p_notification == DisplayServerEnums::WINDOW_EVENT_FOCUS_IN || p_notification == DisplayServerEnums::WINDOW_EVENT_FOCUS_OUT)) {
+	// TimeTraveler: the on-screen keyboard's field taking the canvas's focus
+	// is no more the window's focus lost than the IME's is (a text field
+	// would stop drawing its caret).
+	if ((godot_js_is_ime_focused() || godot_js_display_vk_focused()) && (p_notification == DisplayServerEnums::WINDOW_EVENT_FOCUS_IN || p_notification == DisplayServerEnums::WINDOW_EVENT_FOCUS_OUT)) {
 		return;
 	}
 	if (ds->window_event_callback.is_valid()) {

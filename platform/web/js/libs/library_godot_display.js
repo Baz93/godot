@@ -35,6 +35,9 @@ const GodotDisplayVK = {
 	$GodotDisplayVK: {
 		textinput: null,
 		textarea: null,
+		// TimeTraveler: shown, its field has the focus the canvas had — not the
+		// window's focus lost (see godot_js_display_vk_focused).
+		active: false,
 
 		available: function () {
 			return GodotConfig.virtual_keyboard && 'ontouchstart' in window;
@@ -136,6 +139,7 @@ const GodotDisplayVK = {
 			elem.disabled = false;
 			elem.value = text;
 			elem.style.display = 'block';
+			GodotDisplayVK.active = true;
 			elem.focus();
 			elem.setSelectionRange(start, end);
 		},
@@ -148,6 +152,7 @@ const GodotDisplayVK = {
 				elem.style.display = 'none';
 				elem.value = '';
 			});
+			GodotDisplayVK.active = false;
 		},
 		updateSize: function () {
 			if (!GodotDisplayVK.textinput || !GodotDisplayVK.textarea) {
@@ -784,6 +789,12 @@ const GodotDisplay = {
 	godot_js_display_vk_hide__sig: 'v',
 	godot_js_display_vk_hide: function () {
 		GodotDisplayVK.hide();
+	},
+
+	godot_js_display_vk_focused__proxy: 'sync',
+	godot_js_display_vk_focused__sig: 'i',
+	godot_js_display_vk_focused: function () {
+		return GodotDisplayVK.active ? 1 : 0;
 	},
 
 	godot_js_display_vk_available__proxy: 'sync',
