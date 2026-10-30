@@ -754,9 +754,8 @@ void RendererCanvasCull::canvas_item_add_line(RID p_item, const Point2 &p_from, 
 	Vector2 diff = (p_from - p_to);
 	Vector2 dir = diff.orthogonal().normalized();
 
-	if (p_antialiased) {
-		p_width = canvas_item_get_compensated_antialiasing_width(p_width);
-	}
+	// TimeTraveler: antialiased lines as wide as Godot 4.4 drew them (no
+	// compensation for the feather), so the game looks as it did there.
 
 	Vector2 t = dir * p_width * 0.5;
 
@@ -990,9 +989,8 @@ void RendererCanvasCull::canvas_item_add_polyline(RID p_item, const Vector<Point
 	Item::CommandPolygon *pline = canvas_item->alloc_command<Item::CommandPolygon>();
 	ERR_FAIL_NULL(pline);
 
-	if (p_antialiased) {
-		p_width = canvas_item_get_compensated_antialiasing_width(p_width);
-	}
+	// TimeTraveler: antialiased lines as wide as Godot 4.4 drew them (no
+	// compensation for the feather), so the game looks as it did there.
 
 	if (p_width < 0) {
 		if (p_antialiased) {
@@ -1301,8 +1299,9 @@ void RendererCanvasCull::canvas_item_add_rect(RID p_item, const Rect2 &p_rect, c
 	Item *canvas_item = canvas_item_owner.get_or_null(p_item);
 	ERR_FAIL_NULL(canvas_item);
 
-	// Adjust the rectangle size to account for the antialiasing width.
-	const Rect2 &rect_adjusted = p_antialiased ? p_rect.grow(-FEATHER_SIZE * 0.25f) : p_rect;
+	// TimeTraveler: an antialiased rectangle as large as Godot 4.4 drew it
+	// (not shrunk for the feather).
+	const Rect2 &rect_adjusted = p_rect;
 
 	Item::CommandRect *rect = canvas_item->alloc_command<Item::CommandRect>();
 	ERR_FAIL_NULL(rect);
@@ -1472,11 +1471,8 @@ void RendererCanvasCull::canvas_item_add_ellipse(RID p_item, const Point2 &p_pos
 
 	float major = p_major;
 	float minor = p_minor;
-	if (p_antialiased) {
-		// Adjust the diameter to account for the antialiasing width.
-		major = MAX(0.0f, major - FEATHER_SIZE * 0.25f);
-		minor = MAX(0.0f, minor - FEATHER_SIZE * 0.25f);
-	}
+	// TimeTraveler: an antialiased ellipse (a circle) as large as Godot 4.4
+	// drew it (not shrunk for the feather).
 
 	{
 		Item::CommandPolygon *ellipse = canvas_item->alloc_command<Item::CommandPolygon>();
