@@ -357,6 +357,14 @@ namespace GodotTools.Export
                                     return;
                                 }
 
+                                if (platform == OS.Platforms.Web && (path.EndsWith(".a") || path.EndsWith(".dat")))
+                                {
+                                    // TimeTraveler: the runtime's static libraries are linked into the
+                                    // template's wasm already, and globalization is invariant (no ICU
+                                    // data loaded): neither is used in the browser — 32 MB of 41 not sent.
+                                    return;
+                                }
+
                                 if (embedBuildResults)
                                 {
                                     if (platform == OS.Platforms.Android)
