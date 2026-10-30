@@ -175,7 +175,8 @@ const engine = new Engine(GODOT_CONFIG);
 	// Instagram's…) lacks, any browser has — say so, and give a way there
 	// (on Android an intent: the phone's browser opens the page).
 	const missingNotice = () => {
-		displayFailureNotice('This browser can\'t run the game — an app\'s own browser (Telegram\'s, Instagram\'s…) lacks what it needs.\n\nMissing: ' + missing.join('; '));
+		console.error('Missing: ' + missing.join('; '));
+		displayFailureNotice('This app\'s browser can\'t run the game.');
 		const open = document.createElement('a');
 		open.href = /Android/.test(navigator.userAgent)
 			? `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;end`
