@@ -171,8 +171,21 @@ const engine = new Engine(GODOT_CONFIG);
 	// worker took over), reload once more — once only, then say what's missing.
 	const reloadKey = 'godot-isolation-reload';
 	const session = (f) => { try { return f(window.sessionStorage); } catch (e) { return null; } };
-	const missingNotice = () => displayFailureNotice(
-		'Error\nThe following features required to run Godot projects on the Web are missing:\n' + missing.join('\n'));
+	// TimeTraveler: what's missing an app's own browser (Telegram's,
+	// Instagram's…) lacks, any browser has — say so, and give a way there
+	// (on Android an intent: the phone's browser opens the page).
+	const missingNotice = () => {
+		displayFailureNotice('This browser can\'t run the game — an app\'s own browser (Telegram\'s, Instagram\'s…) lacks what it needs.\n\nMissing: ' + missing.join('; '));
+		const open = document.createElement('a');
+		open.href = /Android/.test(navigator.userAgent)
+			? `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;end`
+			: location.href;
+		open.target = '_blank';
+		open.rel = 'noopener';
+		open.textContent = 'Open in your browser';
+		open.style.cssText = 'display: inline-block; margin-top: 1rem; padding: 0.7rem 1.4rem; border-radius: 0.5rem; background: #4a6cb0; color: #fff; text-decoration: none; font-weight: bold;';
+		statusNotice.appendChild(open);
+	};
 	if (missing.length !== 0) {
 		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator
 			&& session((s) => s.getItem(reloadKey)) !== '1') {
