@@ -21,7 +21,10 @@ const CACHEABLE_FILES = ___GODOT_OPT_CACHE___;
 const FULL_CACHE = CACHED_FILES.concat(CACHEABLE_FILES);
 
 self.addEventListener('install', (event) => {
-	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHED_FILES)));
+	// TimeTraveler: from the server, never the browser's HTTP cache — that may
+	// still hold the previous release's files (a host caching them a while),
+	// and one release's index.js with another's wasm doesn't start.
+	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHED_FILES.map((file) => new Request(file, { cache: 'no-cache' })))));
 });
 
 self.addEventListener('activate', (event) => {
@@ -72,7 +75,9 @@ async function fetchAndCache(event, cache, isCacheable) {
 	let response = await event.preloadResponse;
 	if (response == null) {
 		// Or, go over network.
-		response = await self.fetch(event.request);
+		// TimeTraveler: checked with the server (not the HTTP cache), as above;
+		// a navigation's request can't be given options.
+		response = await self.fetch(event.request.mode === 'navigate' ? event.request : new Request(event.request, { cache: 'no-cache' }));
 	}
 
 	if (ENSURE_CROSSORIGIN_ISOLATION_HEADERS) {
