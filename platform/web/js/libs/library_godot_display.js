@@ -30,7 +30,7 @@
 
 const GodotDisplayVK = {
 
-	$GodotDisplayVK__deps: ['$GodotRuntime', '$GodotConfig', '$GodotEventListeners', '$GodotInput'],
+	$GodotDisplayVK__deps: ['$GodotRuntime', '$GodotConfig', '$GodotEventListeners', '$GodotInput', '$GodotDisplayScreen'],
 	$GodotDisplayVK__postset: 'GodotOS.atexit(function(resolve, reject) { GodotDisplayVK.clear(); resolve(); });',
 	$GodotDisplayVK: {
 		textinput: null,
@@ -137,12 +137,11 @@ const GodotDisplayVK = {
 
 			// TimeTraveler: Safari on iOS zooms the page in on a field whose
 			// text shows smaller than 16px as it takes the focus. Our own page
-			// can't be zoomed, but one the game is embedded in can — itch.io's
-			// has no viewport tag, so it's laid out 980px wide and shown at
-			// some 0.4: zoomed in, the canvas took so many more pixels the tab
-			// ran out of memory. The field's text as large as shows 16px on
-			// the screen, however the page is scaled.
-			elem.style.fontSize = `${Math.ceil(16 * Math.max(1, window.innerWidth / screen.width))}px`;
+			// can't be zoomed, but one the game is embedded in can, and
+			// zoomed in, the canvas took so many more pixels the tab ran out
+			// of memory. The field's text as large as shows 16px on the
+			// screen, however much smaller the page shows (pageScale).
+			elem.style.fontSize = `${Math.ceil(16 / GodotDisplayScreen.pageScale())}px`;
 			elem.readonly = false;
 			elem.disabled = false;
 			elem.value = text;
@@ -247,8 +246,22 @@ const GodotDisplayScreen = {
 	$GodotDisplayScreen: {
 		desired_size: [0, 0],
 		hidpi: true,
+		// TimeTraveler: the canvas in the screen's own pixels — the page's
+		// CSS pixels times its pixel ratio, times how much smaller it shows
+		// than it's laid out (pageScale): in a page shown smaller, the CSS
+		// pixels alone made a canvas many times the screen's pixels.
 		getPixelRatio: function () {
-			return GodotDisplayScreen.hidpi ? window.devicePixelRatio || 1 : 1;
+			return GodotDisplayScreen.hidpi ? (window.devicePixelRatio || 1) * GodotDisplayScreen.pageScale() : 1;
+		},
+		// TimeTraveler: how much smaller than it's laid out the page shows —
+		// 1, but in a page laid out wider than the screen: itch.io's on a
+		// phone has no viewport tag, so it's laid out 980px wide and shown
+		// at some 0.4 (the screen's extent across, against the page's).
+		pageScale: function () {
+			const across = window.innerWidth > window.innerHeight
+				? Math.max(window.screen.width, window.screen.height)
+				: Math.min(window.screen.width, window.screen.height);
+			return Math.min(1, across / window.innerWidth);
 		},
 		isFullscreen: function () {
 			const elem = document.fullscreenElement || document.mozFullscreenElement
