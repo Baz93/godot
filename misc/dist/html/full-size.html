@@ -210,6 +210,47 @@ const engine = new Engine(GODOT_CONFIG);
 	} else {
 		session((s) => s.removeItem(reloadKey));
 		setStatusMode('progress');
+		// TimeTraveler: a release newer than the one the service worker
+		// serves from its cache, if there's one, taken at once — the worker
+		// replaced and the page loaded again through the new one — not only
+		// once every tab of the game has been closed. Offline, or if the
+		// check takes too long, the game starts as it is.
+		newerRelease().then((newer) => {
+			if (newer) {
+				// It takes the page over and loads it again; where it can't
+				// (no WindowClient.navigate), the page does once it's taken.
+				navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload(), { once: true });
+				newer.postMessage('update');
+			} else {
+				startGame();
+			}
+		});
+	}
+
+	function newerRelease() {
+		if (!GODOT_CONFIG['serviceWorker'] || !('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
+			return Promise.resolve(null);
+		}
+		const installed = (worker) => new Promise((resolve) => {
+			if (worker.state !== 'installing') {
+				resolve(worker.state === 'installed' ? worker : null);
+				return;
+			}
+			worker.addEventListener('statechange', () => {
+				if (worker.state !== 'installing') {
+					resolve(worker.state === 'installed' ? worker : null);
+				}
+			});
+		});
+		return Promise.race([
+			navigator.serviceWorker.getRegistration()
+				.then((registration) => registration && registration.update()
+					.then(() => registration.waiting || (registration.installing && installed(registration.installing)) || null)),
+			new Promise((resolve) => setTimeout(() => resolve(null), 5000)),
+		]).catch(() => null);
+	}
+
+	function startGame() {
 		engine.startGame({
 			'onProgress': function (current, total) {
 				if (current > 0 && total > 0) {
