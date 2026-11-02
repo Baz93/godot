@@ -57,6 +57,12 @@ const GodotDisplayVK = {
 				elem.style.height = '0px';
 				elem.style.border = '0px';
 				elem.style.outline = 'none';
+				// TimeTraveler: 16px — Safari on iOS zooms the page in on a
+				// field whose text is smaller as it takes the focus. Our own
+				// page can't be zoomed, but one the game is embedded in (itch.io)
+				// can: zoomed in, the canvas takes so many more pixels the tab
+				// runs out of memory and is killed.
+				elem.style.fontSize = '16px';
 				elem.readonly = true;
 				elem.disabled = true;
 				GodotEventListeners.add(elem, 'input', function (evt) {
